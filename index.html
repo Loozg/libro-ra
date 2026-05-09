@@ -1,68 +1,47 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Librerías estables -->
-    <script src="https://cloudflare.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://aframe.io"></script>
     <script src="https://jsdelivr.net"></script>
-    
     <style>
-      body { margin: 0; overflow: hidden; font-family: sans-serif; }
-      /* Botón de inicio para activar cámara y video en celulares */
-      #botonInicio {
-        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        z-index: 10000; padding: 20px 40px; background: #FF5722;
-        color: white; border: none; border-radius: 50px; font-size: 18px;
-        font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      }
+      body { margin: 0; overflow: hidden; background: #222; }
+      #status { position: fixed; top: 10px; left: 10px; z-index: 1000; color: white; background: rgba(0,0,0,0.7); padding: 10px; font-family: sans-serif; font-size: 12px; }
     </style>
   </head>
   <body>
+    <div id="status">Iniciando sistema...</div>
 
-    <button id="botonInicio">TOCA PARA COMENZAR</button>
-
-    <a-scene 
-      mindar-image="imageTargetSrc: ./targets/targets.mind; autoStart: false; uiScanning: yes;" 
-      color-space="sRGB" 
-      renderer="colorManagement: true, physicallyCorrectLights" 
-      vr-mode-ui="enabled: false" 
-      device-orientation-permission-ui="enabled: false">
-      
+    <a-scene mindar-image="imageTargetSrc: ./targets/targets.mind; autoStart: true; uiLoading: no;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       <a-assets>
-        <!-- Tu video Esc_1.mp4 -->
-        <video id="videoAnimacion" src="./videos/Esc_1.mp4" preload="auto" loop="true" muted playsinline webkit-playsinline></video>
+        <video id="vid" src="./videos/esc_1.mp4" loop="true" muted playsinline></video>
       </a-assets>
-
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-      <!-- Se activa con la ilustración Cuebto_1 (primer target del archivo .mind) -->
       
-        <a-video src="#videoAnimacion" width="1" height="0.6" position="0 0 0"></a-video>
+        <a-video src="#vid" width="1" height="0.6"></a-video>
       
     </a-scene>
 
     <script>
+      const status = document.getElementById('status');
       const sceneEl = document.querySelector('a-scene');
-      const btn = document.querySelector('#botonInicio');
-      const video = document.querySelector('#videoAnimacion');
 
-      btn.addEventListener('click', () => {
-        // Al hacer clic, activamos la RA y el video
-        sceneEl.systems["mindar-image-system"].start();
-        video.play(); 
-        video.pause(); // Lo dejamos listo para cuando detecte el dibujo
-        btn.style.display = 'none';
+      // Detectar si la escena cargó
+      sceneEl.addEventListener('loaded', () => {
+        status.innerText = "Escena lista. Esperando cámara...";
       });
 
-      // Eventos para detectar el dibujo
+      // Detectar errores de AR
+      sceneEl.addEventListener('arError', (event) => {
+        status.style.background = "red";
+        status.innerText = "ERROR DE CÁMARA: Revisa los permisos del navegador.";
+      });
+
+      // Detectar si encontró el dibujo
       const targetEl = document.querySelector('[mindar-image-target]');
       targetEl.addEventListener("targetFound", () => {
-        console.log("Ilustración encontrada");
-        video.play();
-      });
-
-      targetEl.addEventListener("targetLost", () => {
-        video.pause();
+        status.innerText = "¡DIBUJO DETECTADO!";
+        document.querySelector('#vid').play();
       });
     </script>
   </body>
